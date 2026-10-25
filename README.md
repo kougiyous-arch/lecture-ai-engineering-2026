@@ -28,6 +28,8 @@ AIエンジニアリング実践講座（AIE2026）の演習と宿題で使う�
 ```bash
 uv run pytest -q
 uv run python -m app.ask "LoRAとは何ですか？"
+uv run python -m app.ask  # 対話モードで続けて質問
+uv run python -m app.ask --reset-history  # 保存した会話履歴を削除
 ```
 
 詳しい手順は [lectures/01/problem.md](lectures/01/problem.md) を見てください。
