@@ -51,6 +51,27 @@ def test_make_quiz_reports_missing_lecture():
     assert "まだありません" in quiz
 
 
+def test_save_learning_log_appends_entries(tmp_path, monkeypatch):
+    monkeypatch.setattr(tools, "LEARNING_LOG_DIR", tmp_path / "learning_log")
+
+    first = tools.save_learning_log(2, "LoRAのランクについて学んだ。")
+    second = tools.save_learning_log(3, "ツール呼び出しを試した。")
+
+    saved = (tmp_path / "learning_log" / "learning_log.md").read_text(encoding="utf-8")
+    assert "第2回" in first and "保存しました" in first
+    assert "第3回" in second and "保存しました" in second
+    assert "LoRAのランクについて学んだ。" in saved
+    assert "ツール呼び出しを試した。" in saved
+
+
+def test_save_learning_log_rejects_invalid_input(tmp_path, monkeypatch):
+    monkeypatch.setattr(tools, "LEARNING_LOG_DIR", tmp_path / "learning_log")
+
+    assert "回番号は1以上" in tools.save_learning_log(0, "記録")
+    assert "学習記録が空" in tools.save_learning_log(1, "  \n ")
+    assert not (tmp_path / "learning_log").exists()
+
+
 def test_default_question_of_lecture1_is_answerable_from_glossary():
     """第1回の既定の質問（app.ask）は、第3回のエージェントが用語集で正しく答えられること。"""
     from app.ask import DEFAULT_QUESTION

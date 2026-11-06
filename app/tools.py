@@ -6,10 +6,15 @@
 
 import json
 import random
+from datetime import datetime
 from functools import cache
 from pathlib import Path
+from typing import Annotated
+
+from pydantic import Field
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+LEARNING_LOG_DIR = Path(__file__).resolve().parent.parent / "learning_log"
 MAX_RESULTS = 3
 
 
@@ -99,3 +104,26 @@ def make_quiz(lecture: int) -> str:
         f"第{lecture}回の確認問題: 「{term['term']}」とは何ですか？\n"
         f"答え: {term['definition']}"
     )
+
+
+def save_learning_log(lecture: Annotated[int, Field(ge=1)], reflection: str) -> str:
+    """指定した回の学習記録を learning_log/ に追記する。
+
+    学習内容や気づきの保存を利用者から依頼されたときに使う。
+    保存前に利用者の承認が必要なので、記録内容を確認してから呼び出す。
+    lecture は1始まりの回番号、reflection は保存する記録。
+    """
+    if lecture < 1:
+        return "回番号は1以上を指定してください。学習記録は保存していません。"
+    if not reflection.strip():
+        return "学習記録が空です。内容を指定してください。学習記録は保存していません。"
+
+    log_path = LEARNING_LOG_DIR / "learning_log.md"
+    timestamp = datetime.now().astimezone().isoformat(timespec="seconds")
+    entry = f"## 第{lecture}回 - {timestamp}\n\n{reflection.strip()}\n\n"
+
+    LEARNING_LOG_DIR.mkdir(parents=True, exist_ok=True)
+    with log_path.open("a", encoding="utf-8") as f:
+        f.write(entry)
+
+    return f"第{lecture}回の学習記録を {log_path} に保存しました。"
